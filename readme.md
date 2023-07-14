@@ -23,12 +23,12 @@ You'll need to do some setup on your local to get this running. I've tried to ma
 6. Create a file called .env in the root of this repo
 7. Populate .env with the following variables:
 ```
-OPENAI_API_KEY=<your openai API key>
-RULESET_FILEPATH=<directory where you stored pdf sourcebooks>
-GPT_MODEL=<this must be either gpt-3.5-turbo-0613 or gpt-4-0613 or a larger context version of one of these models>
-EMBEDDINGS_CHUNK_SIZE = 4 # this will likely be moved out of the .env file, but for now just do this
+OPENAI_API_KEY = <your openai API key>
+RULESET_FILEPATH = <absolute path of the directory where you stored pdf sourcebooks>
+GPT_MODEL = <this must be either gpt-3.5-turbo-0613 or gpt-4-0613 or a larger context version of one of these models>
+EMBEDDINGS_CHUNK_SIZE = 4 (this will likely be moved out of the .env file, but for now just do this)
 ```
-8. Run indexer.py # Future update will likely remove the need for this step
+8. Run indexer.py (Future update will likely remove the need for this step)
 9. Run app.py
 10. ...
 11. Profit

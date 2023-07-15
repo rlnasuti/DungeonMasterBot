@@ -1,6 +1,6 @@
 # What is DungeonMasterBot?
 
-This is a work in progress. It's driven by my desire to play D&D even when there is no one around to be dungeonmaster. It will be iteratively built upon.
+DungeonMasterBot is a program powered by ChatGPT to act as a Dungeon Master! It demonstrates various GPT related concepts including Knowledge Retrieval from PDFs and GPT's 'function calling' capabilities. This is a work in progress. It's driven by my desire to play D&D even when there is no one around to be dungeonmaster as well as my love of experimentation with LLMs. It will be iteratively built upon.
 
 I expect that I will only update this readme after significant updates, so it may not be up to date on what functionality is available.
 

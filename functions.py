@@ -152,5 +152,81 @@ FUNCTIONS = [
             },
             "required": ["name", "character_class", "race", "level", "background", "alignment", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "max_hit_points", "proficiency_bonus", "skills", "saving_throws", "hit_dice", "death_saves", "equipment", "languages", "features_and_traits"]
         }
-    }        
+    },
+    {
+        "name": "update_character",
+        "description": "Whenever the character gains experience, makes a death save, fails a death save, gains or loses hit points, or uses a spell - call this function to update the character's state. The return value is a serialized json object representing the character's new state.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "The name of the character who's state is being changed."
+                },
+                "additional_experience_points": {
+                    "type": "integer",
+                    "description": "When the character gains experience points, send the number of additional experieince points in this parameter."
+                },
+                "additional_death_saves_successes": {
+                    "type": "integer",
+                    "description": "When the character is making death saves and succeeds, send the number of successes in this parameter. If the character rolled a 20, be sure to set this parameter to 2."
+                },
+                "additional_death_saves_failures": {
+                    "type": "integer",
+                    "description": "When the character is making death saves and fails, send the number of failures in this parameter. If the character rolled a 1, be sure to set this parameter to 2."
+                },
+                "delta_hit_points": {
+                    "type": "integer",
+                    "description": "When the character's hit points change, send the number of hit points gained or lost in this parameter. If the hit points were gained, send a positive integer. If the hit points were lost, send a negative integer."
+                },
+                "additional_level_1_spell_slots_used": {
+                    "type": "integer",
+                    "description": "When the character usees a level one spell slot, send the number of level one spell slots used in this parameter."
+                },
+            },
+            "required": ["name"]
+        }
+    },
+    {
+        "name": "save_game",
+        "description": "This function should be called when the user indicates they want to save the game state.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "The name of the main character of the game state being saved."
+                },
+            },
+            "required": ["name"]
+        },
+    },
+    {
+        "name": "load_game",
+        "description": "This function should be called when the user indicates they want to load a game for a character.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "The name of the main character of the game state being loaded."
+                },
+            },
+            "required": ["name"]
+        },
+    },
+    {
+        "name": "get_character_state",
+        "description": "This function should be called at any time that you need to reference a player character's state. It will return a serialized json object representing the character. You can call this function silently without letting the user know if at any time the character's state leaves your context and you need to refresh it.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "The name of the character who's state you want returned."
+                },
+            },
+            "required": ["name"]
+        },
+    },             
 ]

@@ -26,7 +26,10 @@ class Character:
         spells,
         languages,
         features_and_traits,
-        notes
+        notes,
+        spell_slots_level_1_max=None,
+        spells_slots_level_1_used=None,
+        current_hit_points=None,
     ):
         self.name = name
         self.character_class = character_class
@@ -45,7 +48,7 @@ class Character:
         self.skills = skills
         self.saving_throws = saving_throws
         self.max_hit_points = max_hit_points
-        self.current_hit_points = max_hit_points
+        self.current_hit_points = current_hit_points or max_hit_points
         self.hit_dice = hit_dice
         self.death_saves = death_saves
         self.equipment = equipment
@@ -53,15 +56,16 @@ class Character:
         self.languages = languages
         self.features_and_traits = features_and_traits
         self.notes = notes
-        self.spell_slots_level_1_max = self.lookup_spell_slots(character_class, level)
-        self.spells_slots_level_1_used = 0
+        self.spell_slots_level_1_max = spell_slots_level_1_max or self.lookup_spell_slots(character_class, level)
+        self.spells_slots_level_1_used = spells_slots_level_1_used or 0
 
     def save(self, filename):
         with open(filename, 'w') as f:
-            json.dump(self.__dict__, f)
+            json.dump(self.__dict__, f, indent=4)
 
     @classmethod
-    def load(cls, filename):
+    def load(cls, character_name):
+        filename=f"characters/{character_name}_character.json"
         with open(filename, 'r') as f:
             data = json.load(f)
         return cls(**data)

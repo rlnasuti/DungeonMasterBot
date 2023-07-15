@@ -46,6 +46,33 @@ handler.setFormatter(formatter)
 
 logger.addHandler(handler)
 
+def build_vectorstore():
+    print("Building the vector database")
+    # call main function in indexer.py
+
+@retry(wait=wait_random_exponential(min=1, max=40), stop=stop_after_attempt(3))
+def chat_completion_request(messages, functions=FUNCTIONS, model=GPT_MODEL, function_call="auto"):
+    try:
+        response = openai.ChatCompletion.create(
+            model=GPT_MODEL,
+            messages=messages,
+            functions=functions,
+            function_call=function_call,
+        )
+        return response
+    except Exception as e:
+        print("Unable to generate ChatCompletion response")
+        print(f"Exception: {e}")
+        exit()
+
+def check_and_build_vectorstore():
+    if not os.path.exists("./dbs/documentation/faiss_index"):
+        build_vectorstore()
+    else:
+        embeddings = OpenAIEmbeddings(chunk_size=EMBEDDINGS_CHUNK_SIZE)
+        global VECTORSTORE
+        VECTORSTORE=FAISS.load_local(folder_path="./dbs/documentation/faiss_index", embeddings=embeddings)
+
 @retry(wait=wait_random_exponential(min=1, max=40), stop=stop_after_attempt(3))
 def consult_rulebook(question):
     llm = ChatOpenAI(model_name=GPT_MODEL, temperature=0)
@@ -111,36 +138,55 @@ def create_and_save_character(
     new_character.save(f"characters/{name}_character.json")
     
     # Return the new character
-    return json.dumps(new_character.__dict__)
+    return json.dumps(new_character.__dict__, indent=4)
 
+def get_character_state(name):
+    character = Character.load(name)
 
-@retry(wait=wait_random_exponential(min=1, max=40), stop=stop_after_attempt(3))
-def chat_completion_request(messages, functions=FUNCTIONS, model=GPT_MODEL, function_call="auto"):
-    try:
-        response = openai.ChatCompletion.create(
-            model=GPT_MODEL,
-            messages=messages,
-            functions=functions,
-            function_call=function_call,
-        )
-        return response
-    except Exception as e:
-        print("Unable to generate ChatCompletion response")
-        print(f"Exception: {e}")
-        exit()
+    return json.dumps(character.__dict__)
 
-def check_and_build_vectorstore():
-    if not os.path.exists("./dbs/documentation/faiss_index"):
-        build_vectorstore()
-    else:
-        embeddings = OpenAIEmbeddings(chunk_size=EMBEDDINGS_CHUNK_SIZE)
-        global VECTORSTORE
-        VECTORSTORE=FAISS.load_local(folder_path="./dbs/documentation/faiss_index", embeddings=embeddings)
+def load_game(name):
+    filename = f"saved_games/{name}_game.json"
+    with open(filename, 'r') as f:
+        messages = json.load(f)
+    
+    return messages
 
-def build_vectorstore():
-    print("Building the vector database")
-    # call main function in indexer.py
+def save_game(name, messages):
+    filename = f"saved_games/{name}_game.json"
+    with open(filename, 'w') as f:
+        json.dump(messages, f)
+    
+    return f"Game saved in {filename}"
 
+def update_character(
+        name,
+        additional_experience_points=None,
+        additional_death_saves_successes=None,
+        additional_death_saves_failures=None,
+        delta_hit_points=None,
+        additional_level_1_spell_slots_used=None
+):
+    character = Character.load(name)
+
+    if additional_experience_points is not None:
+        experience_points = character.experience_points
+        character.experience_points = experience_points + additional_experience_points
+    if additional_death_saves_successes is not None:
+        death_saves_successes = character.death_saves["successes"]
+        character.death_saves["successes"] = death_saves_successes + additional_death_saves_successes
+    if additional_death_saves_failures is not None:
+        death_saves_failures = character.death_saves["failures"]
+        character.death_saves["failures"] = death_saves_failures + additional_death_saves_failures
+    if delta_hit_points is not None:
+        current_hit_points = character.current_hit_points
+        character.current_hit_points = current_hit_points + delta_hit_points
+    if additional_level_1_spell_slots_used is not None:
+        spells_slots_level_1_used = character.spells_slots_level_1_used
+        character.spells_slots_level_1_used = spells_slots_level_1_used + additional_level_1_spell_slots_used
+
+    character.save(f"characters/{name}_character.json")
+    return json.dumps(character.__dict__)
 
 def main():
     # Build vectorstore if it doesn't already exist
@@ -167,7 +213,11 @@ def main():
         if chat_response["choices"][0]["message"].get("function_call"):
             function_name = chat_response["choices"][0]["message"]["function_call"]["name"]
             function_args = json.loads(chat_response["choices"][0]["message"]["function_call"]["arguments"])
-            # Step 3, call the function
+            
+            logger.log(level=25, msg="####FUNCTION CALLED####")
+            logger.log(level=25, msg=f"function name: {function_name}")
+            logger.log(level=25, msg=f"function parameters: {function_args}")
+
             if function_name == "consult_rulebook":
                 function_response = consult_rulebook(
                     question=function_args.get("question"),
@@ -199,10 +249,24 @@ def main():
                     features_and_traits=function_args.get("features_and_traits"),
                     notes=function_args.get("notes")
                 )
-
-            logger.log(level=25, msg="####FUNCTION CALLED####")
-            logger.log(level=25, msg=f"function name: {function_name}")
-            logger.log(level=25, msg=f"function parameters: {function_args}")
+            if function_name == "update_character":
+                function_response = update_character(
+                    name=function_args.get("name"),
+                    additional_experience_points=function_args.get("additional_experience_points"),
+                    additional_death_saves_successes=function_args.get("additional_death_saves_successes"),
+                    additional_death_saves_failures=function_args.get("additional_death_saves_failures"),
+                    delta_hit_points=function_args.get("delta_hit_points"),
+                    additional_level_1_spell_slots_used=function_args.get("additional_level_1_spell_slots_used")
+                )            
+            if function_name == "load_game":
+                name=function_args.get("name")
+                messages = load_game(name)
+                function_response=f"The game for {name} was stopped by the user after the prior save. Everything worked perfectly and now it has now been successfully reloaded. Respond with a summary of what hsa happened and the user will pick the game back up."
+            if function_name == "save_game":
+                function_response = save_game(function_args.get("name"), messages)
+            if function_name == "get_character_state":
+                function_response = get_character_state(function_args.get("name"))
+            
             logger.log(level=25, msg=f"function response: {function_response}\n")
 
             # Step 4, send model the info on the function call and function response

@@ -13,6 +13,7 @@ from langchain.vectorstores import FAISS
 from langchain.embeddings import OpenAIEmbeddings
 from functions import FUNCTIONS
 from character import Character
+from conversation import Conversation
 
 load_dotenv()  # take environment variables from .env.
 
@@ -30,21 +31,6 @@ logging.basicConfig(
     format='%(asctime)s:%(levelname)s:%(message)s',
     datefmt='%H:%M:%S'
 )
-
-# Add a new logging level called CONVERSATION with a level of 25
-logging.addLevelName(25, "CONVERSATION")
-
-# Now you can use the new level in your loggers
-logger = logging.getLogger()
-logger.setLevel("CONVERSATION")
-
-handler = logging.FileHandler('conversation.log')
-handler.setLevel("CONVERSATION")
-
-formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s', datefmt='%H:%M:%S')
-handler.setFormatter(formatter)
-
-logger.addHandler(handler)
 
 def build_vectorstore():
     print("Building the vector database")
@@ -193,31 +179,26 @@ def main():
     check_and_build_vectorstore()
 
     # Instantiate and initialize the messages class with the system message
-    messages = []
-    messages.append({"role": "system", "content": "You are Matt Mercer (GPT), the greatest dungeon master of all time. You like to play Dungeons & Dragons. Help the user create a character using the rulebook provided to you. Make sure to enforce the rules - for example, if a level 1 Wizard tries to cast a level 9 spell, don't let them. Speak in the style and tone of Matt Mercer from Critical Role."})
+    conversation = Conversation("You are Matt Mercer (GPT), the greatest dungeon master of all time. You like to play Dungeons & Dragons. Help the user create a character using the rulebook provided to you. Make sure to enforce the rules - for example, if a level 1 Wizard tries to cast a level 9 spell, don't let them. Speak in the style and tone of Matt Mercer from Critical Role.")
 
     while(True):
         user_input = input("Me: ")
-        messages.append({"role": "user", "content": f"{user_input}"})
-        
-        chat_response = chat_completion_request(messages)
-        logger.log(level=25, msg=f"user: {user_input}")
-
+        conversation.add_user_message(user_input)
+        logging.debug(conversation.get_messages())
+        chat_response = chat_completion_request(conversation.get_messages())
         assistant_message = chat_response["choices"][0]["message"]
-        messages.append(assistant_message)
+        conversation.add_assistant_message(assistant_message)
+        logging.debug(conversation.get_messages())
+
 
         if chat_response["choices"][0]["message"].get("content"):
             print(f"Matt Mercer (GPT): {assistant_message['content']}")
-            logger.log(level=25, msg=f"Matt Mercer (GPT): {assistant_message['content']}")
         
-        if chat_response["choices"][0]["message"].get("function_call"):
+        while chat_response["choices"][0]["message"].get("function_call"):
             function_name = chat_response["choices"][0]["message"]["function_call"]["name"]
             function_args = json.loads(chat_response["choices"][0]["message"]["function_call"]["arguments"])
-            
-            logger.log(level=25, msg="####FUNCTION CALLED####")
-            logger.log(level=25, msg=f"function name: {function_name}")
-            logger.log(level=25, msg=f"function parameters: {function_args}")
 
+            # Get the response from the function and add it to the conversation context
             if function_name == "consult_rulebook":
                 function_response = consult_rulebook(
                     question=function_args.get("question"),
@@ -260,26 +241,22 @@ def main():
                 )            
             if function_name == "load_game":
                 name=function_args.get("name")
-                messages = load_game(name)
+                conversation.messages = load_game(name)
                 function_response=f"The game for {name} was stopped by the user after the prior save. Everything worked perfectly and now it has now been successfully reloaded. Respond with a summary of what hsa happened and the user will pick the game back up."
             if function_name == "save_game":
-                function_response = save_game(function_args.get("name"), messages)
+                function_response = save_game(function_args.get("name"), conversation.get_messages())
             if function_name == "get_character_state":
                 function_response = get_character_state(function_args.get("name"))
             
-            logger.log(level=25, msg=f"function response: {function_response}\n")
-
+            conversation.add_function_message(function_name=function_name, function_response=function_response)
+            logging.debug(conversation.get_messages())
             # Step 4, send model the info on the function call and function response
-            messages.append({"role": "function", "name": function_name, "content": function_response})
-            chat_response = chat_completion_request(
-                messages, function_call="none"
-            )
-            logging.debug(chat_response)
+            chat_response = chat_completion_request(conversation.get_messages())
+
             assistant_message = chat_response["choices"][0]["message"]
-            messages.append(assistant_message)
             if chat_response["choices"][0]["message"].get("content"):
+                conversation.add_assistant_message(assistant_message)
                 print(f"Matt Mercer (GPT): {assistant_message['content']}")
-                logger.log(level=25, msg=f"Matt Mercer (GPT): {assistant_message['content']}")
 
 if __name__ == "__main__":
     main()

@@ -14,6 +14,7 @@ from langchain.embeddings import OpenAIEmbeddings
 from functions import FUNCTIONS
 from character import Character
 from conversation import Conversation
+from utils import chat_completion_request
 
 load_dotenv()  # take environment variables from .env.
 
@@ -35,21 +36,6 @@ logging.basicConfig(
 def build_vectorstore():
     print("Building the vector database")
     # call main function in indexer.py
-
-@retry(wait=wait_random_exponential(min=1, max=40), stop=stop_after_attempt(3))
-def chat_completion_request(messages, functions=FUNCTIONS, model=GPT_MODEL, function_call="auto"):
-    try:
-        response = openai.ChatCompletion.create(
-            model=GPT_MODEL,
-            messages=messages,
-            functions=functions,
-            function_call=function_call,
-        )
-        return response
-    except Exception as e:
-        print("Unable to generate ChatCompletion response")
-        print(f"Exception: {e}")
-        exit()
 
 def check_and_build_vectorstore():
     if not os.path.exists("./dbs/documentation/faiss_index"):
@@ -187,12 +173,15 @@ def main():
         logging.debug(conversation.get_messages())
         chat_response = chat_completion_request(conversation.get_messages())
         assistant_message = chat_response["choices"][0]["message"]
+
+        if chat_response["choices"][0]["message"].get("content"):
+            print(f"Matt Mercer (GPT): {assistant_message['content']}")
+        
         conversation.add_assistant_message(assistant_message)
         logging.debug(conversation.get_messages())
 
 
-        if chat_response["choices"][0]["message"].get("content"):
-            print(f"Matt Mercer (GPT): {assistant_message['content']}")
+        
         
         while chat_response["choices"][0]["message"].get("function_call"):
             function_name = chat_response["choices"][0]["message"]["function_call"]["name"]
@@ -244,7 +233,7 @@ def main():
                 conversation.messages = load_game(name)
                 function_response=f"The game for {name} was stopped by the user after the prior save. Everything worked perfectly and now it has now been successfully reloaded. Respond with a summary of what hsa happened and the user will pick the game back up."
             if function_name == "save_game":
-                function_response = save_game(function_args.get("name"), conversation.get_messages())
+                function_response = save_game(function_args.get("name"), conversation.messages)
             if function_name == "get_character_state":
                 function_response = get_character_state(function_args.get("name"))
             

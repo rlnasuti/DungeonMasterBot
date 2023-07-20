@@ -17,49 +17,40 @@ logging.basicConfig(
 )
 
 GPT_MODEL = os.getenv('GPT_MODEL')
-CONTEXT_LIMIT = 2000
+CONTEXT_LIMIT = 2600
 
 class Conversation:
     def __init__(self, system_message="You are a helpful AI Assistant that wants to answer all questions truthfully."):
         encoding = tiktoken.encoding_for_model(GPT_MODEL)
         system_message_token_count = len(encoding.encode(f'"role": "system", "content": {system_message}'))
         functions_token_count = len(encoding.encode(json.dumps(FUNCTIONS)))
+        logging.debug(f"functions token count: {functions_token_count}")
         self.messages = [{"role": 'system', "content": system_message, "token_count": system_message_token_count}]
-        self.token_count = system_message_token_count + functions_token_count
         logging.debug(self.get_messages())
 
     def add_system_message(self, content):
         encoding = tiktoken.encoding_for_model(GPT_MODEL)
         token_count = len(encoding.encode(f'"role": "system", "content": {content}'))
-        self.token_count += token_count
         self.messages.append({"role": 'system', "content": content, "token_count": token_count})
-        if self.token_count > CONTEXT_LIMIT:
-            self._summarize()
     
     def add_user_message(self, content):
         encoding = tiktoken.encoding_for_model(GPT_MODEL)
         token_count = len(encoding.encode(f'"role": "user", "content": {content}'))
-        self.token_count += token_count
         self.messages.append({"role": 'user', "content": content, "token_count": token_count})
-        if self.token_count > CONTEXT_LIMIT:
-            self._summarize()
 
     def add_assistant_message(self, content):
         encoding = tiktoken.encoding_for_model(GPT_MODEL)
-        message_content = content.get("content") or f'Calling function {content.get("function_call").get("name")} with arguments: {content.get("function_call").get("arguments")}'
+        message_content = content["choices"][0]["message"].get("content") or f'Calling function {content["choices"][0]["message"].get("function_call").get("name")} with arguments: {content["choices"][0]["message"].get("function_call").get("arguments")}'
         token_count = len(encoding.encode(str(message_content)))
-        self.token_count += token_count
+        total_token_count = content.get("usage").get("total_tokens")
         self.messages.append({"role": 'assistant', "content": message_content, "token_count": token_count})
-        if self.token_count > CONTEXT_LIMIT:
+        if total_token_count > CONTEXT_LIMIT:
             self._summarize()
     
     def add_function_message(self, function_name, function_response):
         encoding = tiktoken.encoding_for_model(GPT_MODEL)
         token_count = len(encoding.encode(f'"role": "function", "name": {function_name}, "content": {function_response}'))
         self.messages.append({"role": "function", "name": function_name, "content": function_response, "token_count": token_count})
-        self.token_count += token_count
-        if self.token_count > CONTEXT_LIMIT:
-            self._summarize()
 
     def get_messages(self):
         return [{k: v for k, v in message.items() if k != "token_count"} for message in self.messages]
@@ -75,8 +66,14 @@ class Conversation:
                 token_count_to_be_summarized += message['token_count']
                 messages_to_be_summarized.append(message)
                 
-                if token_count_to_be_summarized > CONTEXT_LIMIT / 2:
-                    text_to_summarize = ""
+                if token_count_to_be_summarized > CONTEXT_LIMIT / 12:
+                    existing_summaries = ""
+                    for msg in self.messages:
+                        if msg['role'] == 'system' and 'The story so far:' in msg['content']:
+                            existing_summaries += msg['content'].split('The story so far:')[1] + "\n"
+
+                    # Now, existing_summaries contain all previous summaries. Include this in the new text_to_summarize.
+                    text_to_summarize = existing_summaries
                     for message in messages_to_be_summarized:
                         role = message["role"]
                         content = message["content"]
@@ -92,7 +89,7 @@ class Conversation:
 
                     # Get the summary
                     summary = chat_completion_request(messages=summary_prompt)
-                    print(summary)
+                    print("summarizing")
                     summary = summary["choices"][0]["message"]["content"]
                     
                     # Append the summary to the first system message in the conversation
@@ -102,9 +99,7 @@ class Conversation:
                                 msg['content'] = msg['content'].split('The story so far:')[0] + "\nThe story so far: " + summary
                             else:
                                 msg['content'] += "\nThe story so far: " + summary
-                            self.token_count = self.token_count - msg['token_count']
                             msg['token_count'] = len(encoding.encode(f'{{"role": "system", "content": "{msg["content"]}"}}'))
-                            self.token_count = self.token_count + msg['token_count']
                             break
 
 
@@ -120,10 +115,7 @@ class Conversation:
                     messages_to_be_summarized = []
                     token_count_to_be_summarized = 0
 
-                    # Resize the token count
-                    self.token_count = self.token_count - token_count_to_be_summarized
-
                     return
-
+                
 
         

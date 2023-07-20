@@ -170,14 +170,13 @@ def main():
     while(True):
         user_input = input("Me: ")
         conversation.add_user_message(user_input)
-        logging.debug(conversation.get_messages())
         chat_response = chat_completion_request(conversation.get_messages())
         assistant_message = chat_response["choices"][0]["message"]
 
         if chat_response["choices"][0]["message"].get("content"):
             print(f"Matt Mercer (GPT): {assistant_message['content']}")
         
-        conversation.add_assistant_message(assistant_message)
+        conversation.add_assistant_message(chat_response)
         logging.debug(conversation.get_messages())
 
 
@@ -238,13 +237,12 @@ def main():
                 function_response = get_character_state(function_args.get("name"))
             
             conversation.add_function_message(function_name=function_name, function_response=function_response)
-            logging.debug(conversation.get_messages())
             # Step 4, send model the info on the function call and function response
             chat_response = chat_completion_request(conversation.get_messages())
 
             assistant_message = chat_response["choices"][0]["message"]
             if chat_response["choices"][0]["message"].get("content"):
-                conversation.add_assistant_message(assistant_message)
+                conversation.add_assistant_message(chat_response)
                 print(f"Matt Mercer (GPT): {assistant_message['content']}")
 
 if __name__ == "__main__":

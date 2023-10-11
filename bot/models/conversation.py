@@ -4,13 +4,13 @@ import logging
 import json
 
 from dotenv import load_dotenv
-from functions import FUNCTIONS
-from utils import chat_completion_request
+from bot.utils.functions import FUNCTIONS
+from bot.utils.chat import chat_completion_request
 
 load_dotenv()
 
 logging.basicConfig(
-    filename='debug.log',
+    filename='../logs/debug.log',
     level=logging.DEBUG,
     format='%(asctime)s:%(levelname)s:%(message)s',
     datefmt='%H:%M:%S'
@@ -107,7 +107,7 @@ class Conversation:
                     self.messages = [msg for msg in self.messages if msg not in messages_to_be_summarized]
 
                     # Write out to a summaries.log file
-                    with open("summaries.log", "a") as file:
+                    with open("../logs/summaries.log", "a") as file:
                         file.write(f"Messages summarized:\n{messages_to_be_summarized}\n")
                         file.write(f"Summary generated:\n{summary}\n")
 

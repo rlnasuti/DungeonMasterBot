@@ -5,12 +5,12 @@ import json
 
 from dotenv import load_dotenv
 from tenacity import retry, wait_random_exponential, stop_after_attempt
-from functions import FUNCTIONS
+from bot.utils.functions import FUNCTIONS
 
 load_dotenv()  # take environment variables from .env
 
 logging.basicConfig(
-    filename='debug.log',
+    filename='logs/debug.log',
     level=logging.DEBUG,
     format='%(asctime)s:%(levelname)s:%(message)s',
     datefmt='%H:%M:%S'

@@ -154,11 +154,11 @@ def process_message(user_input):
     chat_response = chat_completion_request(conversation.get_messages())
     assistant_message = chat_response["choices"][0]["message"]
 
-    if chat_response["choices"][0]["message"].get("content"):
-        return f"Matt Mercer (GPT): {assistant_message['content']}"
-        
     conversation.add_assistant_message(chat_response)
     logging.debug(conversation.get_messages())
+
+    if chat_response["choices"][0]["message"].get("content"):
+        return f"Matt Mercer (GPT): {assistant_message['content']}"
         
     while chat_response["choices"][0]["message"].get("function_call"):
         function_name = chat_response["choices"][0]["message"]["function_call"]["name"]

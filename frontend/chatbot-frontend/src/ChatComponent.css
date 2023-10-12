@@ -1,0 +1,52 @@
+.app-container {
+    display: flex;
+    height: 100vh;
+}
+
+.control-pane {
+    width: 20%; /* This will occupy 1/5 of the screen */
+    background-color: #eee; /* Example background color */
+    padding: 20px; /* Example padding */
+    /* Add any other styles for the control pane here */
+}
+
+.chat-container {
+    width: 80%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;  /* Aligns children to the bottom */
+    height: 100vh;  /* 100% of the viewport height */
+}
+
+.input-container {
+    padding: 5%;  /* 8px top and bottom padding */
+    background-color: #c1ead5;
+}
+
+.message-container {
+    padding-bottom: 2%;
+    width: 70%;
+    display: flex;
+    align-self: center;
+    text-align: left;
+    flex-direction: column-reverse;
+    overflow-y: auto;
+    height: 80vh;
+}
+
+.message {
+    padding-bottom: 8px;
+    padding-top: 8px;
+    /* Add any styling for individual messages here, like padding, margin, etc. */
+}
+
+.message.user {
+    background-color: #c1ead5
+    /* Additional styles specific to user messages, if desired */
+}
+
+.message.bot {
+    background-color: #c1bef1;
+    /* Additional styles specific to bot messages, if desired */
+}

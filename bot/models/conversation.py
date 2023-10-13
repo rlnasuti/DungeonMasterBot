@@ -2,6 +2,7 @@ import tiktoken
 import os
 import logging
 import json
+from pathlib import Path
 
 from dotenv import load_dotenv
 from bot.utils.functions import FUNCTIONS
@@ -9,8 +10,12 @@ from bot.utils.chat import chat_completion_request
 
 load_dotenv()
 
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+LOG_FILE = BASE_DIR / "logs/debug.log"
+SUMMARY_FILE = BASE_DIR / "logs/summaries.log"
+
 logging.basicConfig(
-    filename='../logs/debug.log',
+    filename=LOG_FILE,
     level=logging.DEBUG,
     format='%(asctime)s:%(levelname)s:%(message)s',
     datefmt='%H:%M:%S'
@@ -107,7 +112,7 @@ class Conversation:
                     self.messages = [msg for msg in self.messages if msg not in messages_to_be_summarized]
 
                     # Write out to a summaries.log file
-                    with open("../logs/summaries.log", "a") as file:
+                    with open(SUMMARY_FILE, "a") as file:
                         file.write(f"Messages summarized:\n{messages_to_be_summarized}\n")
                         file.write(f"Summary generated:\n{summary}\n")
 

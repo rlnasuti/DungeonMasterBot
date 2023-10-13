@@ -105,7 +105,7 @@ def get_character_state(name):
     return json.dumps(character.__dict__)
 
 def load_game(name):
-    filename = f"saved_games/{name}_game.json"
+    filename = f"data/saved_games/{name}_game.json"
     with open(filename, 'r') as f:
         messages = json.load(f)
     
@@ -157,12 +157,12 @@ def process_message(user_input):
     conversation.add_assistant_message(chat_response)
     logging.debug(conversation.get_messages())
 
-    if chat_response["choices"][0]["message"].get("content"):
+    if assistant_message.get("content"):
         return f"Matt Mercer (GPT): {assistant_message['content']}"
         
-    while chat_response["choices"][0]["message"].get("function_call"):
-        function_name = chat_response["choices"][0]["message"]["function_call"]["name"]
-        function_args = json.loads(chat_response["choices"][0]["message"]["function_call"]["arguments"])
+    while assistant_message.get("function_call"):
+        function_name = assistant_message["function_call"]["name"]
+        function_args = json.loads(assistant_message["function_call"]["arguments"])
 
         # Get the response from the function and add it to the conversation context
         if function_name == "consult_rulebook":
@@ -219,6 +219,7 @@ def process_message(user_input):
         chat_response = chat_completion_request(conversation.get_messages())
 
         assistant_message = chat_response["choices"][0]["message"]
-        if chat_response["choices"][0]["message"].get("content"):
+        if assistant_message.get("content"):
             conversation.add_assistant_message(chat_response)
-            return f"Matt Mercer (GPT): {assistant_message['content']}"
+            
+    return f"Matt Mercer (GPT): {assistant_message['content']}"

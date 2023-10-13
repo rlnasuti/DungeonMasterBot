@@ -65,7 +65,7 @@ class Character:
 
     @classmethod
     def load(cls, character_name):
-        filename=f"characters/{character_name}_character.json"
+        filename=f"data/characters/{character_name}_character.json"
         with open(filename, 'r') as f:
             data = json.load(f)
         return cls(**data)

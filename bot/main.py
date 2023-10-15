@@ -12,8 +12,8 @@ from langchain.memory import ConversationBufferMemory
 from bot.utils.functions import FUNCTIONS
 from bot.models.character import Character
 from bot.models.conversation import Conversation
-from bot.utils.chat import chat_completion_request
-from bot.setup import initialize_bot
+from bot.utils.chat import chat_completion_request, chat_completion_stream
+from bot.setup import initialize_conversation
 
 load_dotenv()  # take environment variables from .env.
 
@@ -146,80 +146,3 @@ def update_character(
 
     character.save(f"characters/{name}_character.json")
     return json.dumps(character.__dict__)
-
-conversation = initialize_bot()
-
-def process_message(user_input):
-    conversation.add_user_message(user_input)
-    chat_response = chat_completion_request(conversation.get_messages())
-    assistant_message = chat_response["choices"][0]["message"]
-
-    conversation.add_assistant_message(chat_response)
-    logging.debug(conversation.get_messages())
-
-    if assistant_message.get("content"):
-        return f"Matt Mercer (GPT): {assistant_message['content']}"
-        
-    while assistant_message.get("function_call"):
-        function_name = assistant_message["function_call"]["name"]
-        function_args = json.loads(assistant_message["function_call"]["arguments"])
-
-        # Get the response from the function and add it to the conversation context
-        if function_name == "consult_rulebook":
-            function_response = consult_rulebook(
-                question=function_args.get("question"),
-            )
-        if function_name == "create_and_save_character":
-            function_response = create_and_save_character(
-                name=function_args.get("name"),
-                character_class=function_args.get("character_class"),
-                race=function_args.get("race"),
-                level=function_args.get("level"),
-                background=function_args.get("background"),
-                alignment=function_args.get("alignment"),
-                experience_points=function_args.get("experience_points"),
-                strength=function_args.get("strength"),
-                dexterity=function_args.get("dexterity"),
-                constitution=function_args.get("constitution"),
-                wisdom=function_args.get("wisdom"),
-                intelligence=function_args.get("intelligence"),
-                charisma=function_args.get("charisma"),
-                proficiency_bonus=function_args.get("proficiency_bonus"),
-                skills=function_args.get("skills"),
-                saving_throws=function_args.get("saving_throws"),
-                max_hit_points=function_args.get("max_hit_points"),
-                hit_dice=function_args.get("hit_dice"),
-                death_saves=function_args.get("death_saves"),
-                equipment=function_args.get("equipment"),
-                spells=function_args.get("spells"),
-                languages=function_args.get("languages"),
-                features_and_traits=function_args.get("features_and_traits"),
-                notes=function_args.get("notes")
-            )
-        if function_name == "update_character":
-            function_response = update_character(
-                name=function_args.get("name"),
-                additional_experience_points=function_args.get("additional_experience_points"),
-                additional_death_saves_successes=function_args.get("additional_death_saves_successes"),
-                additional_death_saves_failures=function_args.get("additional_death_saves_failures"),
-                delta_hit_points=function_args.get("delta_hit_points"),
-                additional_level_1_spell_slots_used=function_args.get("additional_level_1_spell_slots_used")
-            )            
-        if function_name == "load_game":
-            name=function_args.get("name")
-            conversation.messages = load_game(name)
-            function_response=f"The game for {name} was stopped by the user after the prior save. Everything worked perfectly and now it has now been successfully reloaded. Respond with a summary of what hsa happened and the user will pick the game back up."
-        if function_name == "save_game":
-            function_response = save_game(function_args.get("name"), conversation.messages)
-        if function_name == "get_character_state":
-            function_response = get_character_state(function_args.get("name"))
-        
-        conversation.add_function_message(function_name=function_name, function_response=function_response)
-        # Step 4, send model the info on the function call and function response
-        chat_response = chat_completion_request(conversation.get_messages())
-
-        assistant_message = chat_response["choices"][0]["message"]
-        if assistant_message.get("content"):
-            conversation.add_assistant_message(chat_response)
-            
-    return f"Matt Mercer (GPT): {assistant_message['content']}"

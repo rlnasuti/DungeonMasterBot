@@ -45,12 +45,10 @@ class Conversation:
 
     def add_assistant_message(self, content):
         encoding = tiktoken.encoding_for_model(GPT_MODEL)
-        message_content = content["choices"][0]["message"].get("content") or f'Calling function {content["choices"][0]["message"].get("function_call").get("name")} with arguments: {content["choices"][0]["message"].get("function_call").get("arguments")}'
-        token_count = len(encoding.encode(str(message_content)))
-        total_token_count = content.get("usage").get("total_tokens")
-        self.messages.append({"role": 'assistant', "content": message_content, "token_count": token_count})
-        if total_token_count > CONTEXT_LIMIT:
-            self._summarize()
+        token_count = len(encoding.encode(f'"role": "user", "content": {content}'))
+        self.messages.append({"role": 'assistant', "content": content, "token_count": token_count})
+        # if total_token_count > CONTEXT_LIMIT:
+        #     self._summarize()
     
     def add_function_message(self, function_name, function_response):
         encoding = tiktoken.encoding_for_model(GPT_MODEL)

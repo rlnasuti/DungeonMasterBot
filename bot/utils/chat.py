@@ -36,3 +36,21 @@ def chat_completion_request(messages, functions=FUNCTIONS, model=GPT_MODEL, func
         print("Unable to generate ChatCompletion response")
         print(f"Exception: {e}")
         exit()
+
+@retry(wait=wait_random_exponential(min=1, max=40), stop=stop_after_attempt(3))
+def chat_completion_stream(messages, functions=FUNCTIONS, model=GPT_MODEL, function_call="auto"):
+    logging.debug(json.dumps(messages))
+    try:
+        response = openai.ChatCompletion.create(
+            model=GPT_MODEL,
+            messages=messages,
+            functions=functions,
+            function_call=function_call,
+            stream = True
+        )
+        logging.debug(response)
+        return response
+    except Exception as e:
+        print("Unable to generate ChatCompletion response")
+        print(f"Exception: {e}")
+        exit()

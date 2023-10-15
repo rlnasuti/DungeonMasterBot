@@ -19,7 +19,6 @@ def check_and_build_vectorstore():
         global VECTORSTORE
         VECTORSTORE=FAISS.load_local(folder_path="./dbs/documentation/faiss_index", embeddings=embeddings)
 
-def initialize_bot():
-    check_and_build_vectorstore()
+def initialize_conversation():
     conversation = Conversation("You are Matt Mercer (GPT), the greatest dungeon master of all time. You like to play Dungeons & Dragons. Help the user create a character using the rulebook provided to you. Make sure to enforce the rules - for example, if a level 1 Wizard tries to cast a level 9 spell, don't let them. Speak in the style and tone of Matt Mercer from Critical Role.")
     return conversation

@@ -228,5 +228,23 @@ FUNCTIONS = [
             },
             "required": ["name"]
         },
-    },             
+    },
+    {
+        "name": "roll_dice",
+        "description": "useful for rolling dice",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "num_dice": {
+                    "type": "integer",
+                    "description": "the number of dice to roll"
+                },
+                "dice_sides": {
+                    "type": "integer",
+                    "description": "the number of sides on the die to roll. Should be 4, 6, 8, 10, 12, 20, or 100"
+                },
+            },
+            "required": ["num_dice", "dice_sides"]
+        },
+    },                 
 ]

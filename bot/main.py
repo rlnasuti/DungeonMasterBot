@@ -3,6 +3,7 @@ import os
 import logging
 import openai
 import json
+import random
 
 from dotenv import load_dotenv
 from tenacity import retry, wait_random_exponential, stop_after_attempt
@@ -146,3 +147,6 @@ def update_character(
 
     character.save(f"characters/{name}_character.json")
     return json.dumps(character.__dict__)
+
+def roll_dice(num_dice: int, dice_sides: int):
+    return [random.randint(1, dice_sides) for _ in range(num_dice)]

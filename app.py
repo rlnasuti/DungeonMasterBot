@@ -3,15 +3,32 @@ import json
 import ast
 import os
 import chainlit as cl
+from chainlit.prompt import Prompt, PromptMessage
+from chainlit.playground.providers.openai import ChatOpenAI
 
 from bot.utils.functions import FUNCTIONS
-from bot.main import consult_rulebook, create_and_save_character, get_character_state, load_game, save_game, update_character
+from bot.main import consult_rulebook, create_and_save_character, get_character_state, load_game, save_game, update_character, roll_dice
 from bot.setup import check_and_build_vectorstore, initialize_conversation
 from bot.models.conversation import Conversation
+
+from typing import List, Dict
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 MAX_ITER = 5
+
+SETTINGS = {
+    "temperature": .5,
+    "max_tokens": 3000,
+}
+
+def create_prompt(messages: List[Dict]) -> Prompt:
+    prompt_messages = []
+    for message in messages:
+        prompt_messages.append(PromptMessage(formatted=message["content"], role=message["role"]))
+    settings = SETTINGS
+    settings["model"] = os.getenv("GPT_MODEL")
+    return Prompt(provider=ChatOpenAI.id, settings=settings, messages=prompt_messages)
 
 async def process_new_delta(
     new_delta, openai_message, content_ui_message, function_ui_message
@@ -56,9 +73,10 @@ def start_chat():
     )
 
 @cl.on_message
-async def run_conversation(user_message: str):
+async def run_conversation(user_message: cl.Message):
     conversation: Conversation = cl.user_session.get("conversation")
-    conversation.add_user_message(user_message)
+    conversation.add_user_message(user_message.content)
+    prompt=create_prompt(conversation.get_messages())
 
     cur_iter = 0
 
@@ -66,9 +84,9 @@ async def run_conversation(user_message: str):
         # OpenAI call
         openai_message = {"role": "", "content": ""}
         function_ui_message = None
-        content_ui_message = cl.Message(content="")
+        content_ui_message = cl.Message(content="", prompt=prompt)
         async for stream_resp in await openai.ChatCompletion.acreate(
-            model="gpt-3.5-turbo-0613",
+            model=os.getenv("GPT_MODEL"),
             messages=conversation.get_messages(),
             stream=True,
             function_call="auto",
@@ -84,10 +102,15 @@ async def run_conversation(user_message: str):
                 new_delta, openai_message, content_ui_message, function_ui_message
             )
 
+        prompt.completion=content_ui_message.content
         await content_ui_message.send()
+        
 
-        conversation.add_assistant_message(openai_message['content'])
+        if len(openai_message['content']) > 0:
+            conversation.add_assistant_message(openai_message['content'])
+    
         if function_ui_message is not None:
+            prompt.completion=function_ui_message.content
             await function_ui_message.send()
 
         if stream_resp.choices[0]["finish_reason"] == "stop":
@@ -97,6 +120,7 @@ async def run_conversation(user_message: str):
             raise ValueError(stream_resp.choices[0]["finish_reason"])
 
         # if code arrives here, it means there is a function call
+        conversation.add_assistant_message(str(openai_message.get("function_call")))
         function_name = openai_message.get("function_call").get("name")
         function_args = ast.literal_eval(
             openai_message.get("function_call").get("arguments")
@@ -151,14 +175,20 @@ async def run_conversation(user_message: str):
             function_response = save_game(function_args.get("name"), conversation.messages)
         if function_name == "get_character_state":
             function_response = get_character_state(function_args.get("name"))
+        if function_name == "roll_dice":
+            function_response = roll_dice(function_args.get("num_dice"), function_args.get("dice_sides"))
 
-        conversation.add_function_message(function_name=function_name, function_response=function_response)
-
-        await cl.Message(
+        
+        conversation.add_function_message(function_name=function_name, function_response=str(function_response))
+        prompt = create_prompt(conversation.get_messages())
+        
+        msg = cl.Message(
             author=function_name,
             content=str(function_response),
             language="json",
             indent=1,
-        ).send()
+            prompt=prompt)
+
+        await msg.send()
 
         cur_iter += 1

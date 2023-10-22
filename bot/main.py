@@ -1,6 +1,5 @@
 import PyPDF2
 import os
-import logging
 import openai
 import json
 import random
@@ -25,13 +24,6 @@ EMBEDDINGS_CHUNK_SIZE = os.getenv('EMBEDDINGS_CHUNK_SIZE')
 VECTORSTORE = "built by function"
 
 openai.api_key = OPENAI_API_KEY
-
-logging.basicConfig(
-    filename='../logs/debug.log',
-    level=logging.DEBUG,
-    format='%(asctime)s:%(levelname)s:%(message)s',
-    datefmt='%H:%M:%S'
-)
 
 @retry(wait=wait_random_exponential(min=1, max=40), stop=stop_after_attempt(3))
 def consult_rulebook(question):

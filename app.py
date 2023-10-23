@@ -30,7 +30,10 @@ SETTINGS = {
 def create_prompt(messages: List[Dict]) -> Prompt:
     prompt_messages = []
     for message in messages:
-        prompt_messages.append(PromptMessage(formatted=message["content"], role=message["role"]))
+        if(message["role"] == "function"):
+            prompt_messages.append(PromptMessage(formatted=message["content"], role=message["role"], name=message["name"]))
+        else:
+            prompt_messages.append(PromptMessage(formatted=message["content"], role=message["role"]))
     settings = SETTINGS
     settings["model"] = os.getenv("GPT_MODEL")
     return Prompt(provider=ChatOpenAI.id, settings=settings, messages=prompt_messages)

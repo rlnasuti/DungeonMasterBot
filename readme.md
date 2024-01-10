@@ -10,6 +10,6 @@ Future planned functionality will give it the ability to update character state.
 
 # Setup
 
-Run both the Flask app and the React frontend:
-Flask: python your_flask_file.py
-React: cd chatbot-frontend && npm start
+`poetry install` all the things
+`poetry shell` into the venv
+`chainlit run app.py`

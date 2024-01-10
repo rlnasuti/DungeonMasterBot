@@ -10,6 +10,6 @@ Future planned functionality will give it the ability to update character state.
 
 # Setup
 
-`poetry install` all the things
-`poetry shell` into the venv
-`chainlit run app.py`
+1. `poetry install` all the things
+1. `poetry shell` into the venv
+1. `chainlit run app.py`

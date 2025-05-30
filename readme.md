@@ -13,3 +13,22 @@ Future planned functionality will give it the ability to update character state.
 1. `poetry install` all the things
 1. `poetry shell` into the venv
 1. `chainlit run app.py`
+
+## MCP Server
+
+A minimal MUD Client Protocol server is provided in `mcp_server.py`. It exposes the same tools described in `bot/utils/functions.py` by delegating to the implementations in `bot/main.py`.
+
+To start the server run:
+
+```
+python mcp_server.py
+```
+
+It listens on `0.0.0.0:5050` by default. Messages must start with `#$#` and use the `call` command:
+
+```
+#$#call roll_dice {"num_dice": 2, "dice_sides": 6}
+```
+
+The server will respond with a `#$#result` MCP message containing the JSON encoded result.
+

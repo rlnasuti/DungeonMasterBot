@@ -1,8 +1,13 @@
+import React from 'react';
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders learn react link', () => {
+// Mock axios to avoid ESM import issues in Jest and real HTTP calls.
+jest.mock('axios', () => ({
+  post: jest.fn(() => Promise.resolve({ data: { response: 'The DM speaks.' } })),
+}));
+
+test('renders composer input', () => {
   render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+  expect(screen.getByLabelText(/message input/i)).toBeInTheDocument();
 });

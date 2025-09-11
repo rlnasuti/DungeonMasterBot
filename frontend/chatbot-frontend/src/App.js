@@ -18,6 +18,12 @@ function App() {
     if (!text) return;
     setSending(true);
     setInput('');
+    // Immediately return focus to textarea after state update
+    if (typeof window !== 'undefined') {
+      window.requestAnimationFrame(() => {
+        if (inputRef.current) inputRef.current.focus();
+      });
+    }
 
     // Add my message
     pushMessage({ role: 'me', content: text, ts: Date.now() });

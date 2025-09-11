@@ -67,7 +67,7 @@ export default function ChatWindow({ messages }) {
             onClick={() => scrollToBottom(true)}
             aria-label="Scroll to latest messages"
           >
-            ↓ Latest
+            New messages ↓
           </button>
         )}
       </div>

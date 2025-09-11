@@ -26,6 +26,10 @@ export default function Composer({ value, setValue, onSend, disabled, inputRef }
         className="send-btn"
         aria-label="Send message"
         onClick={onSend}
+        onMouseDown={(e) => {
+          // Prevent mouse click from stealing focus from the textarea
+          e.preventDefault();
+        }}
         disabled={disabled || !value.trim()}
       >
         Send

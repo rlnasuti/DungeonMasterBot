@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import './App.css';
 import Sidebar from './components/Sidebar';
 import ChatWindow from './components/ChatWindow';
@@ -9,6 +9,7 @@ function App() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
+  const inputRef = useRef(null);
 
   const pushMessage = (msg) => setMessages((prev) => [...prev, { id: `${Date.now()}-${Math.random()}`, ...msg }]);
 
@@ -32,6 +33,10 @@ function App() {
       pushMessage({ role: 'dm', content: 'The DM is silent… (error)', ts: Date.now() });
     } finally {
       setSending(false);
+      // Ensure focus returns to the textarea after send completes
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
     }
   };
 
@@ -39,7 +44,7 @@ function App() {
     <div className="layout">
       <Sidebar />
       <ChatWindow messages={messages} />
-      <Composer value={input} setValue={setInput} onSend={handleSend} disabled={sending} />
+      <Composer value={input} setValue={setInput} onSend={handleSend} disabled={sending} inputRef={inputRef} />
     </div>
   );
 }

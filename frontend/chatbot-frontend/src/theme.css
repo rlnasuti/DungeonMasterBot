@@ -1,0 +1,27 @@
+/* Theme tokens: D&D-esque */
+:root {
+  --bg-base: #0e1012;         /* near-black */
+  --panel: #1b2420;           /* deep forest */
+  --parchment: #f3ead7;       /* paper */
+  --ink: #1b1b1b;             /* text */
+  --muted-ink: #c7c1b5;       /* muted text */
+  --accent: #c9a227;          /* antique gold */
+  --accent-2: #6b2e2e;        /* burgundy */
+  --ring: 0 0 0 2px var(--accent) inset; /* focus ring */
+  --radius: 12px;             /* rounded corners */
+}
+
+/* Typography defaults */
+body {
+  font-family: "Spectral", Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Cinzel", serif;
+}
+
+/* Selection */
+::selection {
+  background: rgba(201, 162, 39, 0.25);
+}
+

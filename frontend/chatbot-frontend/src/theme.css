@@ -7,8 +7,8 @@
   --muted-ink: #c7c1b5;       /* muted text */
   --accent: #c9a227;          /* antique gold */
   --accent-2: #6b2e2e;        /* burgundy */
-  --ring: 0 0 0 2px var(--accent) inset; /* focus ring */
   --radius: 12px;             /* rounded corners */
+  --ring: 0 0 0 2px var(--accent) inset; /* focus ring */
 }
 
 /* Typography defaults */
@@ -25,3 +25,7 @@ h1, h2, h3, h4, h5, h6 {
   background: rgba(201, 162, 39, 0.25);
 }
 
+/* Prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}

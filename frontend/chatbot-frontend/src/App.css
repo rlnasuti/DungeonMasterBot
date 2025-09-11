@@ -77,10 +77,12 @@ body {
   min-height: 0; /* allow children to shrink */
   position: relative; /* for scroll pill positioning */
   overflow: hidden; /* ensure inner .messages can scroll */
+  height: 100%;
 }
 
 .messages {
   flex: 1;
+  height: 100%;
   overflow-y: auto;
   padding: 16px;
   display: flex;

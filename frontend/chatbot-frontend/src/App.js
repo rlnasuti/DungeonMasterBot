@@ -21,7 +21,10 @@ function App() {
     // Immediately return focus to textarea after state update
     if (typeof window !== 'undefined') {
       window.requestAnimationFrame(() => {
-        if (inputRef.current) inputRef.current.focus();
+        if (inputRef.current) {
+          inputRef.current.focus();
+          try { inputRef.current.setSelectionRange(0, 0); } catch (_) {}
+        }
       });
     }
 
@@ -42,6 +45,7 @@ function App() {
       // Ensure focus returns to the textarea after send completes
       if (inputRef.current) {
         inputRef.current.focus();
+        try { inputRef.current.setSelectionRange(0, 0); } catch (_) {}
       }
     }
   };

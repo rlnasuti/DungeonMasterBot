@@ -76,6 +76,7 @@ body {
   flex-direction: column;
   min-height: 0; /* allow children to shrink */
   position: relative; /* for scroll pill positioning */
+  overflow: hidden; /* ensure inner .messages can scroll */
 }
 
 .messages {
@@ -87,6 +88,8 @@ body {
   gap: 12px;
   position: relative;
   min-height: 0; /* allow scrolling within flex container */
+  -webkit-overflow-scrolling: touch; /* smoother iOS scrolling */
+  overscroll-behavior-y: contain; /* keep scroll contained */
 }
 
 .messages-inner {

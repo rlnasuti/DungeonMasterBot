@@ -1,22 +1,27 @@
-[tool.poetry]
+[project]
 name = "dungeonmasterbot"
 version = "0.1.0"
 description = ""
-authors = ["Robert Nasuti <rlnasuti@hotmail.com>"]
 readme = "README.md"
-
-[tool.poetry.dependencies]
-python = "^3.11"
-python-dotenv = "^1.0.0"
-openai = "^0.28.1"
-tenacity = "^8.2.3"
-langchain = "^0.0.308"
-tiktoken = "^0.5.1"
-pypdf2 = "^3.0.1"
-faiss-cpu = "^1.7.4"
-flask-cors = "^4.0.0"
-
+requires-python = ">=3.11"
+authors = [{ name = "Robert Nasuti", email = "rlnasuti@hotmail.com" }]
+dependencies = [
+    "faiss-cpu==1.7.4",
+    "flask==3.0.0",
+    "flask-cors==4.0.0",
+    "langchain==0.0.308",
+    "openai==0.28.1",
+    "PyPDF2==3.0.1",
+    "python-dotenv==1.0.0",
+    "tenacity==8.2.3",
+    "tiktoken==0.12.0",
+]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["bot*"]
+exclude = ["frontend*"]

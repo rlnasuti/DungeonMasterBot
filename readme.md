@@ -6,14 +6,14 @@ DungeonMasterBot is an experiment in running a Dungeons & Dragons experience wit
 
 - `bot/` – Python code for the Dungeon Master brain, including the Flask API (`bot/api/server.py`), conversation logic, and LangChain helpers.
 - `frontend/chatbot-frontend/` – React client served with Create React App.
-- `requirements.txt` / `pyproject.toml` – Python dependency definitions (use whichever workflow you prefer).
+- `pyproject.toml` / `uv.lock` – Python dependencies managed with [uv](https://github.com/astral-sh/uv); `requirements.txt` mirrors the direct dependencies for compatibility.
 
 ## Requirements
 
 - Python 3.11+
 - Node.js 18+ and npm 9+
 - An OpenAI API key and access to a supported chat/completions model
-- Optionally: Poetry if you prefer it over `pip`
+- [uv](https://github.com/astral-sh/uv) 0.9+ for Python dependency management (pip + virtualenv also works if needed)
 
 ## Environment Variables
 
@@ -37,10 +37,10 @@ All commands below assume you are in the repository root.
 Install dependencies (pick one workflow):
 
 ```bash
-# Using Poetry
-poetry install
+# Using uv (creates .venv/ automatically)
+uv sync
 
-# or using pip
+# or using pip + virtualenv
 python -m venv .venv
 source .venv/bin/activate           # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
@@ -49,8 +49,8 @@ pip install -r requirements.txt
 Start the API server:
 
 ```bash
-# Poetry
-poetry run python bot/api/server.py
+# uv (automatically uses the managed environment)
+uv run python bot/api/server.py
 
 # pip / virtualenv
 python bot/api/server.py

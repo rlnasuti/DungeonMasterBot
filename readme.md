@@ -1,15 +1,81 @@
-# What is DungeonMasterBot?
+# DungeonMasterBot
 
-DungeonMasterBot is a program powered by ChatGPT to act as a Dungeon Master! It demonstrates various GPT related concepts including Knowledge Retrieval from PDFs and GPT's 'function calling' capabilities. This is a work in progress. It's driven by my desire to play D&D even when there is no one around to be dungeonmaster as well as my love of experimentation with LLMs. It will be iteratively built upon.
+DungeonMasterBot is an experiment in running a Dungeons & Dragons experience with the help of large language models. A Flask API handles the DM logic, while a modern React interface delivers the chat experience with quality-of-life features such as auto-scroll anchoring.
 
-I expect that I will only update this readme after significant updates, so it may not be up to date on what functionality is available.
+## Project Layout
 
-The first commit provides only minimal functionality - it can create a character and save it locally. The bot can work with the player to create a character, or you can request it make one for you. It's also pretty good at making characters based on fictional characters from novels or movies.
+- `bot/` – Python code for the Dungeon Master brain, including the Flask API (`bot/api/server.py`), conversation logic, and LangChain helpers.
+- `frontend/chatbot-frontend/` – React client served with Create React App.
+- `requirements.txt` / `pyproject.toml` – Python dependency definitions (use whichever workflow you prefer).
 
-Future planned functionality will give it the ability to update character state. Then I'll likely work to make a combat simulator. The ultimate goal is to provide this bot a digital campaign and for the bot to be able to run it from start to finish through multiple sessions.
+## Requirements
 
-# Setup
+- Python 3.11+
+- Node.js 18+ and npm 9+
+- An OpenAI API key and access to a supported chat/completions model
+- Optionally: Poetry if you prefer it over `pip`
 
-Run both the Flask app and the React frontend:
-Flask: python your_flask_file.py
-React: cd chatbot-frontend && npm start
+## Environment Variables
+
+Create a `.env` file at the repository root with at least the following values:
+
+```
+OPENAI_API_KEY=sk-...
+GPT_MODEL=gpt-3.5-turbo
+RULESET_FILEPATH=/absolute/path/to/rules.pdf
+EMBEDDINGS_CHUNK_SIZE=1000            # optional; defaults vary by LangChain version
+```
+
+Additional values referenced in the code (such as paths for saved characters) can be customised to your filesystem.
+
+## Setup & Running
+
+All commands below assume you are in the repository root.
+
+### 1. Backend (Flask API)
+
+Install dependencies (pick one workflow):
+
+```bash
+# Using Poetry
+poetry install
+
+# or using pip
+python -m venv .venv
+source .venv/bin/activate           # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Start the API server:
+
+```bash
+# Poetry
+poetry run python bot/api/server.py
+
+# pip / virtualenv
+python bot/api/server.py
+```
+
+The service listens on `http://localhost:8000/chat`.
+
+### 2. Frontend (React UI)
+
+Install dependencies and start the dev server without leaving the repo root:
+
+```bash
+npm install --prefix frontend/chatbot-frontend
+npm run dev --prefix frontend/chatbot-frontend
+```
+
+The UI runs at [http://localhost:3000](http://localhost:3000) and sends chat requests to the Flask API at port 8000.
+
+### 3. Development Tips
+
+- Keep the backend and frontend running in separate terminals.
+- Adjust the axios endpoint in `frontend/chatbot-frontend/src/App.js` if you expose the API on a different host or port.
+- Ensure a `logs/` directory exists (`mkdir logs`) so the backend can write `logs/debug.log` for troubleshooting.
+
+## Next Steps
+
+- Populate the FAISS index under `dbs/documentation/faiss_index` to enable rulebook retrieval.
+- Extend the function-calling capabilities in `bot/utils/functions.py` for richer gameplay.

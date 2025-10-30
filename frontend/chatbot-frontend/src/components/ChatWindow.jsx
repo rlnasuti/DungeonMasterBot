@@ -6,6 +6,8 @@ export default function ChatWindow({ messages }) {
   const listRef = useRef(null);
   // Sentinel element that sits at the very end of the list
   const bottomRef = useRef(null);
+  // Track whether we should auto-scroll when new messages arrive
+  const pinnedToBottomRef = useRef(true);
 
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [needsSpacer, setNeedsSpacer] = useState(false);
@@ -30,6 +32,8 @@ export default function ChatWindow({ messages }) {
   }, []);
 
   const scrollToBottom = useCallback((smooth = true) => {
+    pinnedToBottomRef.current = true;
+    setIsAtBottom(true);
     // Prefer the sentinel; it is more reliable with dynamic heights
     const sentinel = bottomRef.current;
     if (sentinel?.scrollIntoView) {
@@ -49,7 +53,9 @@ export default function ChatWindow({ messages }) {
   // Manual scroll handler to set the "stuck" state
   const onScroll = useCallback(() => {
     const el = listRef.current;
-    setIsAtBottom(nearBottom(el));
+    const atBottom = nearBottom(el);
+    setIsAtBottom(atBottom);
+    pinnedToBottomRef.current = atBottom;
     setNeedsSpacer(computeNeedsSpacer());
   }, [nearBottom, computeNeedsSpacer]);
 
@@ -59,7 +65,9 @@ export default function ChatWindow({ messages }) {
     const sentinel = bottomRef.current;
     if (!el || !sentinel || !('IntersectionObserver' in window)) {
       // Initialize state with the fallback computation
-      setIsAtBottom(nearBottom(el));
+      const atBottom = nearBottom(el);
+      setIsAtBottom(atBottom);
+      pinnedToBottomRef.current = atBottom;
       setNeedsSpacer(computeNeedsSpacer());
       return;
     }
@@ -76,7 +84,9 @@ export default function ChatWindow({ messages }) {
 
     io.observe(sentinel);
     // Also initialize using current geometry
-    setIsAtBottom(nearBottom(el));
+    const atBottomInitial = nearBottom(el);
+    setIsAtBottom(atBottomInitial);
+    pinnedToBottomRef.current = atBottomInitial;
     setNeedsSpacer(computeNeedsSpacer());
 
     return () => {
@@ -101,11 +111,11 @@ export default function ChatWindow({ messages }) {
 
   // Keep anchored to bottom when new messages arrive IF already at bottom
   useEffect(() => {
-    if (isAtBottom) {
+    if (pinnedToBottomRef.current) {
       // Use rAF so we scroll after the DOM paints the new message
       requestAnimationFrame(() => scrollToBottom(false));
     }
-  }, [messages, isAtBottom, scrollToBottom]);
+  }, [messages, scrollToBottom]);
 
   // Force bottom alignment when messages go from 0 -> >0
   useEffect(() => {

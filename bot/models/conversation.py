@@ -1,9 +1,10 @@
-import tiktoken
 import os
 import logging
 import json
 from pathlib import Path
+from functools import lru_cache
 
+import tiktoken
 from dotenv import load_dotenv
 from bot.utils.functions import FUNCTIONS
 from bot.utils.chat import chat_completion_request
@@ -22,11 +23,27 @@ logging.basicConfig(
 )
 
 GPT_MODEL = os.getenv('GPT_MODEL')
+GPT_ENCODING = os.getenv('GPT_ENCODING')
 CONTEXT_LIMIT = 2600
+
+
+@lru_cache(maxsize=1)
+def _get_encoding():
+    if GPT_MODEL:
+        try:
+            return tiktoken.encoding_for_model(GPT_MODEL)
+        except KeyError:
+            logging.warning("Unknown model '%s' for tiktoken; falling back to GPT_ENCODING", GPT_MODEL)
+    encoding_name = GPT_ENCODING or "cl100k_base"
+    try:
+        return tiktoken.get_encoding(encoding_name)
+    except KeyError:
+        logging.warning("Unknown encoding '%s'; falling back to cl100k_base", encoding_name)
+        return tiktoken.get_encoding("cl100k_base")
 
 class Conversation:
     def __init__(self, system_message="You are a helpful AI Assistant that wants to answer all questions truthfully."):
-        encoding = tiktoken.encoding_for_model(GPT_MODEL)
+        encoding = _get_encoding()
         system_message_token_count = len(encoding.encode(f'"role": "system", "content": {system_message}'))
         functions_token_count = len(encoding.encode(json.dumps(FUNCTIONS)))
         logging.debug(f"functions token count: {functions_token_count}")
@@ -34,17 +51,17 @@ class Conversation:
         logging.debug(self.get_messages())
 
     def add_system_message(self, content):
-        encoding = tiktoken.encoding_for_model(GPT_MODEL)
+        encoding = _get_encoding()
         token_count = len(encoding.encode(f'"role": "system", "content": {content}'))
         self.messages.append({"role": 'system', "content": content, "token_count": token_count})
     
     def add_user_message(self, content):
-        encoding = tiktoken.encoding_for_model(GPT_MODEL)
+        encoding = _get_encoding()
         token_count = len(encoding.encode(f'"role": "user", "content": {content}'))
         self.messages.append({"role": 'user', "content": content, "token_count": token_count})
 
     def add_assistant_message(self, content):
-        encoding = tiktoken.encoding_for_model(GPT_MODEL)
+        encoding = _get_encoding()
         message_content = content["choices"][0]["message"].get("content") or f'Calling function {content["choices"][0]["message"].get("function_call").get("name")} with arguments: {content["choices"][0]["message"].get("function_call").get("arguments")}'
         token_count = len(encoding.encode(str(message_content)))
         total_token_count = content.get("usage").get("total_tokens")
@@ -53,7 +70,7 @@ class Conversation:
             self._summarize()
     
     def add_function_message(self, function_name, function_response):
-        encoding = tiktoken.encoding_for_model(GPT_MODEL)
+        encoding = _get_encoding()
         token_count = len(encoding.encode(f'"role": "function", "name": {function_name}, "content": {function_response}'))
         self.messages.append({"role": "function", "name": function_name, "content": function_response, "token_count": token_count})
 
@@ -63,7 +80,7 @@ class Conversation:
     def _summarize(self):
         messages_to_be_summarized = []
         token_count_to_be_summarized = 0
-        encoding = tiktoken.encoding_for_model(GPT_MODEL)
+        encoding = _get_encoding()
 
         for message in self.messages:
             if message['role'] != 'system':

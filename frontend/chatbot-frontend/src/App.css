@@ -1,5 +1,7 @@
 /* Root layout */
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
 }
 
@@ -11,11 +13,13 @@ body {
 .layout {
   display: grid;
   grid-template-columns: 280px 1fr;
-  grid-template-rows: 1fr auto;
+  /* Ensure the main row can shrink and allow inner scrolling */
+  grid-template-rows: minmax(0, 1fr) auto;
   grid-template-areas:
     "sidebar main"
     "sidebar footer";
   height: 100vh;
+  /* Clip children to their grid areas; avoid bleed */
   overflow: hidden;
 }
 
@@ -61,7 +65,8 @@ body {
   color: var(--parchment);
   font-family: "Spectral", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   text-align: left;
-  cursor: not-allowed; /* placeholder only */
+  cursor: not-allowed;
+  /* placeholder only */
 }
 
 .nav-btn:focus-visible {
@@ -74,16 +79,38 @@ body {
   grid-area: main;
   display: flex;
   flex-direction: column;
-  min-height: 0; /* allow children to shrink */
+  min-height: 0;
+  /* allow children to shrink */
+  position: relative;
+  /* for scroll pill positioning */
+  /* Contain children; let .messages handle scrolling */
+  overflow: hidden;
+  height: 100%;
 }
 
 .messages {
-  flex: 1;
+  /* Occupy remaining vertical space inside .chat-main */
+  flex: 1 1 auto;
+  /* CRITICAL: allow the flex child to shrink so scrolling can engage */
+  min-height: 0;
+  /* Let the messages area own the scroll */
   overflow-y: auto;
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  position: relative;
+  -webkit-overflow-scrolling: touch;
+  /* smoother iOS scrolling */
+  overscroll-behavior-y: contain;
+  /* keep scroll contained */
+  touch-action: pan-y;
+  /* allow vertical panning on touch devices */
+}
+
+.messages .spacer {
+  flex: 1 1 auto;
+  /* fills unused space so short conversations rest at the bottom */
 }
 
 .parchment {
@@ -99,13 +126,13 @@ body {
 
 .msg.me {
   align-self: flex-end;
-  background: linear-gradient(0deg, rgba(249,244,233,0.95), rgba(249,244,233,0.95)), var(--parchment);
+  background: linear-gradient(0deg, rgba(249, 244, 233, 0.95), rgba(249, 244, 233, 0.95)), var(--parchment);
   border: 1px solid rgba(27, 27, 27, 0.15);
 }
 
 .msg.dm {
   align-self: flex-start;
-  background: linear-gradient(0deg, rgba(243,234,215,0.95), rgba(243,234,215,0.95)), var(--parchment);
+  background: linear-gradient(0deg, rgba(243, 234, 215, 0.95), rgba(243, 234, 215, 0.95)), var(--parchment);
 }
 
 .msg .author {
@@ -124,8 +151,8 @@ body {
   grid-area: footer;
   position: sticky;
   bottom: 0;
-  background: linear-gradient(0deg, rgba(27,36,32,0.9), rgba(27,36,32,0.9)), var(--panel);
-  border-top: 1px solid rgba(201,162,39,0.15);
+  background: linear-gradient(0deg, rgba(27, 36, 32, 0.9), rgba(27, 36, 32, 0.9)), var(--panel);
+  border-top: 1px solid rgba(201, 162, 39, 0.15);
   padding: 10px 12px;
   display: flex;
   gap: 10px;
@@ -139,7 +166,7 @@ body {
   padding: 10px 12px;
   border-radius: var(--radius);
   border: 1px solid rgba(201, 162, 39, 0.25);
-  background: rgba(14,16,18,0.4);
+  background: rgba(14, 16, 18, 0.4);
   color: var(--parchment);
   font-family: "Spectral", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
@@ -153,12 +180,31 @@ body {
   box-shadow: var(--ring);
 }
 
+/* Scroll to latest pill */
+.scroll-to-latest {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 1;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 162, 39, 0.35);
+  background: rgba(14, 16, 18, 0.6);
+  color: var(--parchment);
+  font-weight: 600;
+}
+
+.scroll-to-latest:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
 .send-btn {
   align-self: flex-end;
   padding: 10px 14px;
   border-radius: var(--radius);
   border: 1px solid rgba(201, 162, 39, 0.35);
-  background: linear-gradient(180deg, rgba(201,162,39,0.25), rgba(201,162,39,0.15));
+  background: linear-gradient(180deg, rgba(201, 162, 39, 0.25), rgba(201, 162, 39, 0.15));
   color: var(--parchment);
   font-weight: 600;
 }

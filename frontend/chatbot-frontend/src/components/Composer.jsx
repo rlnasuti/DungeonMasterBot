@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 
-export default function Composer({ value, setValue, onSend, disabled }) {
+export default function Composer({ value, setValue, onSend, disabled, inputRef }) {
   const handleKeyDown = useCallback((e) => {
     const isEnter = e.key === 'Enter';
     const isMeta = e.metaKey || e.ctrlKey; // Cmd on macOS or Ctrl on others
@@ -19,12 +19,17 @@ export default function Composer({ value, setValue, onSend, disabled }) {
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={handleKeyDown}
         disabled={disabled}
+        ref={inputRef}
       />
       <button
         type="button"
         className="send-btn"
         aria-label="Send message"
         onClick={onSend}
+        onMouseDown={(e) => {
+          // Prevent mouse click from stealing focus from the textarea
+          e.preventDefault();
+        }}
         disabled={disabled || !value.trim()}
       >
         Send
@@ -32,4 +37,3 @@ export default function Composer({ value, setValue, onSend, disabled }) {
     </footer>
   );
 }
-

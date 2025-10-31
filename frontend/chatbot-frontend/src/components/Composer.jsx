@@ -2,13 +2,14 @@ import React, { useCallback } from 'react';
 
 export default function Composer({ value, setValue, onSend, disabled, inputRef }) {
   const handleKeyDown = useCallback((e) => {
+    if (disabled) return;
     const isEnter = e.key === 'Enter';
     const isMeta = e.metaKey || e.ctrlKey; // Cmd on macOS or Ctrl on others
     if ((isEnter && !e.shiftKey) || (isEnter && isMeta)) {
       e.preventDefault();
       if (value.trim()) onSend();
     }
-  }, [onSend, value]);
+  }, [disabled, onSend, value]);
 
   return (
     <footer className="composer" role="contentinfo" aria-label="Message composer">
@@ -18,7 +19,6 @@ export default function Composer({ value, setValue, onSend, disabled, inputRef }
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={handleKeyDown}
-        disabled={disabled}
         ref={inputRef}
       />
       <button

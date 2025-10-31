@@ -237,7 +237,4 @@ def process_message(user_input):
         assistant_message = extract_response_text(chat_response)
         tool_calls = extract_function_calls(chat_response)
 
-    if assistant_message:
-        return f"Matt Mercer (GPT): {assistant_message}"
-
-    return "Matt Mercer (GPT):"
+    return assistant_message or ""

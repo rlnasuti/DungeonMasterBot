@@ -26,7 +26,11 @@ client = OpenAI()
 def _format_tools(functions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     tools: List[Dict[str, Any]] = []
     for function in functions:
-        tools.append({"type": "function", "function": function})
+        tool: Dict[str, Any] = {"type": "function"}
+        for key in ("name", "description", "parameters", "strict"):
+            if key in function:
+                tool[key] = function[key]
+        tools.append(tool)
     return tools
 
 

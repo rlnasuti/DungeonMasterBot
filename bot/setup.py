@@ -28,7 +28,6 @@ def build_vectorstore():
 
     vector_store = client.vector_stores.create(
         name="DungeonMasterBot Rulebook",
-        description="Vector store containing the Dungeon Master rulebook.",
         file_ids=[uploaded_file.id],
     )
 

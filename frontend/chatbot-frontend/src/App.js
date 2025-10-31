@@ -12,6 +12,18 @@ function App() {
   const inputRef = useRef(null);
 
   const pushMessage = (msg) => setMessages((prev) => [...prev, { id: `${Date.now()}-${Math.random()}`, ...msg }]);
+  const handleClear = async () => {
+    setMessages([]);
+    try {
+      await axios.post('http://localhost:8000/chat/reset');
+    } catch (err) {
+      console.warn('Failed to reset DM context:', err);
+    }
+    if (inputRef.current) {
+      inputRef.current.focus();
+      try { inputRef.current.setSelectionRange(0, 0); } catch (_) {}
+    }
+  };
 
   const handleSend = async () => {
     const text = input.trim();
@@ -53,7 +65,7 @@ function App() {
   return (
     <div className="layout">
       <Sidebar />
-      <ChatWindow messages={messages} />
+      <ChatWindow messages={messages} onClear={handleClear} />
       <Composer value={input} setValue={setInput} onSend={handleSend} disabled={sending} inputRef={inputRef} />
     </div>
   );

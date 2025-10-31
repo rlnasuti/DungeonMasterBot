@@ -13,6 +13,7 @@ from bot.utils.chat import (
     extract_response_text,
 )
 from bot.setup import initialize_bot
+from bot.models.conversation import Conversation
 
 load_dotenv()  # take environment variables from .env.
 
@@ -40,7 +41,7 @@ def consult_rulebook(question):
         ],
         tools=[{"type": "file_search"}],
         tool_resources={"file_search": {"vector_store_ids": [VECTOR_STORE_ID]}},
-        temperature=0,
+        temperature=.5,
     )
     return extract_response_text(response)
 
@@ -153,6 +154,13 @@ def update_character(
     return json.dumps(character.__dict__)
 
 conversation, VECTOR_STORE_ID = initialize_bot()
+SYSTEM_MESSAGE = conversation.messages[0]["content"]
+
+
+def reset_conversation():
+    global conversation
+    conversation = Conversation(SYSTEM_MESSAGE)
+    logging.debug("Conversation context reset by user action.")
 
 def process_message(user_input):
     conversation.add_user_message(user_input)

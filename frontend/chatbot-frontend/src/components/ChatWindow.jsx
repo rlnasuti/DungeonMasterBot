@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback, useLayoutEffect } from 'react';
 import Message from './Message';
 
-export default function ChatWindow({ messages }) {
+export default function ChatWindow({ messages, onClear }) {
   // Scroll container
   const listRef = useRef(null);
   // Sentinel element that sits at the very end of the list
@@ -13,6 +13,11 @@ export default function ChatWindow({ messages }) {
   const [needsSpacer, setNeedsSpacer] = useState(false);
   // Track previous message count to detect 0 -> >0 transition
   const prevCountRef = useRef(messages.length);
+  const handleClear = useCallback(() => {
+    if (typeof onClear === 'function') {
+      onClear();
+    }
+  }, [onClear]);
 
   const computeNeedsSpacer = useCallback(() => {
     const el = listRef.current;
@@ -137,6 +142,17 @@ export default function ChatWindow({ messages }) {
 
   return (
     <main className="chat-main" role="main" aria-label="Chat area">
+      <div className="chat-actions" aria-label="Conversation controls">
+        <button
+          type="button"
+          className="clear-ledger"
+          onClick={handleClear}
+          disabled={!messages.length}
+          aria-label="Clear the current conversation"
+        >
+          Clear Chronicle
+        </button>
+      </div>
       <div
         className="messages"
         ref={listRef}

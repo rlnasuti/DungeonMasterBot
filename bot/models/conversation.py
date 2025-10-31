@@ -27,7 +27,27 @@ logging.basicConfig(
 
 GPT_MODEL = os.getenv('GPT_MODEL')
 GPT_ENCODING = os.getenv('GPT_ENCODING')
-CONTEXT_LIMIT = 2600
+
+MODEL_CONTEXT_LIMITS = {
+    "gpt-5-nano": 32000,
+    "gpt-5": 400000,
+    "gpt-4o": 128000,
+    "gpt-5-mini": 400000
+}
+DEFAULT_CONTEXT_LIMIT = 50000
+
+
+def _resolve_context_limit(model_name: str | None) -> int:
+    if not model_name:
+        return DEFAULT_CONTEXT_LIMIT
+    model_key = model_name.lower()
+    for prefix, limit in MODEL_CONTEXT_LIMITS.items():
+        if model_key.startswith(prefix):
+            return limit
+    return DEFAULT_CONTEXT_LIMIT
+
+
+CONTEXT_LIMIT = _resolve_context_limit(GPT_MODEL)
 
 
 @lru_cache(maxsize=1)

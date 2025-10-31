@@ -88,6 +88,46 @@ body {
   height: 100%;
 }
 
+.chat-actions {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  display: flex;
+  gap: 8px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.clear-ledger {
+  pointer-events: auto;
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(201, 162, 39, 0.4);
+  background: linear-gradient(180deg, rgba(27, 36, 32, 0.92), rgba(27, 36, 32, 0.78));
+  color: var(--parchment);
+  font-family: "Cinzel", serif;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.clear-ledger:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(201, 162, 39, 0.18);
+  border-color: rgba(201, 162, 39, 0.55);
+}
+
+.clear-ledger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.clear-ledger:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
 .messages {
   /* Occupy remaining vertical space inside .chat-main */
   flex: 1 1 auto;

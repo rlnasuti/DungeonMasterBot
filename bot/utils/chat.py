@@ -19,6 +19,19 @@ logging.basicConfig(
 )
 
 GPT_MODEL = os.getenv('GPT_MODEL')
+RAW_REASONING_EFFORT = (os.getenv('REASONING_EFFORT') or "").strip().lower()
+_DISABLED_REASONING_VALUES = {"", "none", "off", "disable", "disabled"}
+_ALLOWED_REASONING_EFFORTS = {"low", "medium", "high"}
+
+
+def _resolve_reasoning_effort() -> Dict[str, str] | None:
+    if RAW_REASONING_EFFORT in _ALLOWED_REASONING_EFFORTS:
+        return {"effort": RAW_REASONING_EFFORT}
+    if RAW_REASONING_EFFORT in _DISABLED_REASONING_VALUES:
+        return {"effort": "minimal"}
+    if RAW_REASONING_EFFORT:
+        logging.warning("Ignoring unsupported REASONING_EFFORT value '%s'", RAW_REASONING_EFFORT)
+    return {"effort": "minimal"}
 
 client = OpenAI()
 
@@ -76,6 +89,9 @@ def chat_completion_request(
     logging.debug(json.dumps(messages))
     try:
         kwargs: Dict[str, Any] = {"model": model, "input": messages}
+        reasoning_effort = _resolve_reasoning_effort()
+        if reasoning_effort:
+            kwargs["reasoning"] = reasoning_effort
         tool_definitions = _format_tools(functions) if functions else []
         if tool_definitions:
             kwargs["tools"] = tool_definitions

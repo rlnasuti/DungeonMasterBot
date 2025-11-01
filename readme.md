@@ -23,7 +23,6 @@ Create a `.env` file at the repository root with at least the following values:
 OPENAI_API_KEY=sk-...
 GPT_MODEL=gpt-3.5-turbo
 RULESET_FILEPATH=/absolute/path/to/rules.pdf
-EMBEDDINGS_CHUNK_SIZE=1000            # optional; defaults vary by LangChain version
 ```
 
 Additional values referenced in the code (such as paths for saved characters) can be customised to your filesystem.
@@ -74,6 +73,30 @@ The UI runs at [http://localhost:3000](http://localhost:3000) and sends chat req
 - Keep the backend and frontend running in separate terminals.
 - Adjust the axios endpoint in `frontend/chatbot-frontend/src/App.js` if you expose the API on a different host or port.
 - Ensure a `logs/` directory exists (`mkdir logs`) so the backend can write `logs/debug.log` for troubleshooting.
+
+## Tool-Call Evals
+
+The repository includes a lightweight harness for validating tool usage via the OpenAI Evals API. Each scenario primes a short conversation, captures the assistant’s tool call, injects a mocked tool response, and grades the follow-up turn.
+
+Run the evals from the repo root:
+
+```bash
+uv run -m evals.run_tool_call_evals
+```
+
+### Optional flags
+
+- `--model`: override the target model (defaults to the `GPT_MODEL` value in `.env`, or `gpt-4o-mini` if unset).
+- `--data-file`: path to a JSONL file containing scenarios (defaults to `evals/data/tool_call_samples.jsonl`).
+- `--poll-interval`: seconds between status polls while the eval run is in progress (default `3`).
+
+### Prerequisites
+
+- `OPENAI_API_KEY` must be present in your environment or `.env`.
+- `GPT_MODEL` should point at a model with tool-calling support (for example `gpt-4o-mini`).
+- The harness uses the function definitions in `bot/utils/functions.py`; keep those in sync with any downstream changes.
+
+After the command finishes, note the printed Eval ID and Run ID for deeper inspection in the OpenAI dashboard.
 
 ## Next Steps
 

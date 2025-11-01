@@ -97,8 +97,3 @@ uv run -m evals.run_tool_call_evals
 - The harness uses the function definitions in `bot/utils/functions.py`; keep those in sync with any downstream changes.
 
 After the command finishes, note the printed Eval ID and Run ID for deeper inspection in the OpenAI dashboard.
-
-## Next Steps
-
-- Populate the FAISS index under `dbs/documentation/faiss_index` to enable rulebook retrieval.
-- Extend the function-calling capabilities in `bot/utils/functions.py` for richer gameplay.

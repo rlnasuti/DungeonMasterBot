@@ -36,11 +36,13 @@ def consult_rulebook(question):
     response = client.responses.create(
         model=GPT_MODEL,
         input=[
-            {"role": "system", "content": "You are a Dungeons & Dragons rule expert. Answer questions using the provided rulebook resources and quote rules when helpful."},
+            {
+                "role": "system",
+                "content": "You are a Dungeons & Dragons rule expert. Answer questions using the provided rulebook resources and quote rules when helpful.",
+            },
             {"role": "user", "content": question},
         ],
-        tools=[{"type": "file_search"}],
-        tool_resources={"file_search": {"vector_store_ids": [VECTOR_STORE_ID]}},
+        tools=[{"type": "file_search", "vector_store_ids": [VECTOR_STORE_ID]}],
         temperature=.5,
     )
     return extract_response_text(response)

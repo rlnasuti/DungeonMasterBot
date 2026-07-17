@@ -1,6 +1,13 @@
 import React, { useCallback } from 'react';
 
-export default function Composer({ value, setValue, onSend, disabled, inputRef }) {
+export default function Composer({
+  value,
+  setValue,
+  onSend,
+  disabled,
+  inputRef,
+  placeholder = 'Speak your will, adventurer…',
+}) {
   const handleKeyDown = useCallback((e) => {
     if (disabled) return;
     const isEnter = e.key === 'Enter';
@@ -15,11 +22,12 @@ export default function Composer({ value, setValue, onSend, disabled, inputRef }
     <footer className="composer" role="contentinfo" aria-label="Message composer">
       <textarea
         aria-label="Message input"
-        placeholder="Speak your will, adventurer…"
+        placeholder={placeholder}
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={handleKeyDown}
         ref={inputRef}
+        disabled={disabled}
       />
       <button
         type="button"

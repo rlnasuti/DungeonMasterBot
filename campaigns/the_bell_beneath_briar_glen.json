@@ -1,0 +1,241 @@
+{
+  "schema_version": 1,
+  "id": "the-bell-beneath-briar-glen",
+  "title": "The Bell Beneath Briar Glen",
+  "tagline": "A forgotten bell is stealing a village's memories one toll at a time.",
+  "target_minutes": 45,
+  "recommended_level": 1,
+  "player_count": 2,
+  "rules_baseline": "srd-5.2.1",
+  "tone": ["mystery", "heroic", "melancholy", "hopeful"],
+  "content_notes": ["memory loss", "mild supernatural peril", "corrupt local official"],
+  "opening": {
+    "public": "Rain needles the slate roofs of Briar Glen as a bell tolls beneath the earth. Around you, villagers pause mid-step, suddenly unable to remember why they came outside.",
+    "prompt": "Invite the whole table to answer one open question: What small, ordinary memory does each character refuse to lose? Stop and wait after that single prompt; continue the opening only after the players answer."
+  },
+  "clocks": [
+    {
+      "id": "memory-fade",
+      "label": "The village forgets",
+      "current": 1,
+      "maximum": 4,
+      "visibility": "public",
+      "advance_on": ["extended-delay", "destructive-failure"],
+      "at_maximum": "Mara forgets Finn and the final choice becomes more costly, but the adventure remains completable."
+    }
+  ],
+  "facts": [
+    {
+      "id": "bell-restores-as-well-as-erases",
+      "visibility": "private",
+      "truth": "The bell stores every memory it takes. Replacing its silver clapper will restore those memories on the next toll.",
+      "reveal_conditions": ["inspect-chapel-mural", "earn-mara-trust", "ask-the-echo"],
+      "safe_performance_cue": "Descriptions of the bell should feel sorrowful and burdened, not malicious."
+    },
+    {
+      "id": "voss-awakened-the-bell",
+      "visibility": "private",
+      "truth": "Magistrate Elian Voss removed the silver clapper to make witnesses forget that he diverted the winter grain fund.",
+      "reveal_conditions": ["collect-two-voss-clues", "voss-confesses", "restore-the-memories"],
+      "safe_performance_cue": "Voss is overly eager to have the bell destroyed and redirects detailed questions toward the chapel's supposed curse."
+    },
+    {
+      "id": "finn-is-safe",
+      "visibility": "private",
+      "truth": "Finn followed the ringing underground and is sheltering beside the bell. He is frightened but unharmed.",
+      "reveal_conditions": ["find-finn-tracks", "reach-bell-vault"]
+    }
+  ],
+  "npcs": [
+    {
+      "id": "mara-finch",
+      "name": "Mara Finch",
+      "role": "lantern-maker and Finn's aunt",
+      "public_description": "A rain-soaked craftswoman carrying a hooded brass lantern and trying not to show how frightened she is.",
+      "initial_relationship": {
+        "trust": 1,
+        "suspicion": 0,
+        "fear": 2,
+        "respect": 0
+      },
+      "goals": ["find Finn", "protect the village", "learn what the bell has taken"],
+      "private_motive_ids": [],
+      "knows_fact_ids": ["bell-restores-as-well-as-erases", "finn-is-safe"],
+      "knowledge_limits": ["Mara suspects the bell stores memories but does not know Voss removed the clapper."],
+      "relationship_triggers": [
+        {"event": "promise-to-find-finn", "trust_delta": 1},
+        {"event": "dismiss-her-concern", "trust_delta": -1, "suspicion_delta": 1},
+        {"event": "show-voss-evidence", "trust_delta": 2, "respect_delta": 1}
+      ],
+      "voice_direction": "Quick, practical sentences that soften whenever she mentions Finn."
+    },
+    {
+      "id": "elian-voss",
+      "name": "Magistrate Elian Voss",
+      "role": "elected magistrate of Briar Glen",
+      "public_description": "An immaculate official in a rain-dark green coat, offering a heavy purse to anyone who destroys the buried bell.",
+      "initial_relationship": {
+        "trust": 0,
+        "suspicion": 1,
+        "fear": 1,
+        "respect": 0
+      },
+      "goals": ["destroy the bell", "keep the grain theft secret", "appear decisive"],
+      "private_motive_ids": ["voss-awakened-the-bell"],
+      "knows_fact_ids": ["voss-awakened-the-bell", "bell-restores-as-well-as-erases"],
+      "knowledge_limits": ["Voss does not know Finn is in the vault."],
+      "relationship_triggers": [
+        {"event": "accept-voss-payment", "trust_delta": 1},
+        {"event": "ask-about-grain-ledger", "suspicion_delta": 2, "fear_delta": 1},
+        {"event": "publicly-accuse-voss", "trust_delta": -2, "fear_delta": 2}
+      ],
+      "voice_direction": "Measured civic warmth with a clipped edge when the grain ledger or silver clapper is mentioned."
+    }
+  ],
+  "scenes": [
+    {
+      "id": "rainy-square",
+      "title": "The Toll in the Rain",
+      "public_goal": "Learn what is happening and choose whom to trust.",
+      "entry_description": "The buried bell tolls as Mara and Voss argue beneath the eaves of the Last Lantern.",
+      "available_npc_ids": ["mara-finch", "elian-voss"],
+      "player_approaches": ["question either NPC", "inspect the square", "follow fresh tracks", "accept or reject Voss's offer", "take another plausible action"],
+      "checks": [
+        {
+          "id": "read-voss",
+          "ability": "Wisdom",
+          "skill": "Insight",
+          "dc": 12,
+          "dc_visibility": "private",
+          "success": "Voss's fear spikes only when the silver clapper is mentioned; record clue `voss-fears-clapper`.",
+          "fail_forward": "Voss notices the scrutiny and becomes guarded, but Mara quietly points out mud from the sealed chapel on his boots; record clue `voss-visited-chapel`."
+        },
+        {
+          "id": "notice-square-details",
+          "ability": "Wisdom",
+          "skill": "Perception",
+          "dc": 11,
+          "dc_visibility": "private",
+          "success": "Notice two immediate sensory details without inferring a motive: chapel mud on Voss's polished boots and child-sized tracks crossing the rain-slick square toward chapel lane.",
+          "fail_forward": "The rain obscures who left which trace, but the converging mud and footprints still establish chapel lane as the strongest next lead."
+        },
+        {
+          "id": "connect-square-evidence",
+          "ability": "Intelligence",
+          "skill": "Investigation",
+          "dc": 12,
+          "dc_visibility": "private",
+          "success": "Connect the disturbed runoff, Voss's chapel mud, and the smaller tracks: someone recently traveled between the square and the ruined chapel, making the chapel the best place to test the available evidence.",
+          "fail_forward": "The evidence does not identify anyone's purpose, but it still points toward the ruined chapel; reaching that conclusion costs time as the buried bell tolls again and `memory-fade` advances by one."
+        },
+        {
+          "id": "win-voss-cooperation",
+          "ability": "Charisma",
+          "skill": "Persuasion",
+          "dc": 12,
+          "dc_visibility": "private",
+          "success": "If the request is plausible, Voss grants one limited public concession, such as answering a non-protected question or allowing access to the ruined chapel, and becomes bound by that commitment.",
+          "fail_forward": "Voss refuses the requested concession and grows guarded, but his public refusal prompts Mara to offer practical help reaching the ruined chapel."
+        },
+        {
+          "id": "pressure-voss",
+          "ability": "Charisma",
+          "skill": "Intimidation",
+          "dc": 13,
+          "dc_visibility": "private",
+          "success": "When backed by credible pressure, Voss yields one limited public concession without confessing or revealing protected facts, and his visible fear increases.",
+          "fail_forward": "Voss invokes his office and denies the demand, becoming more suspicious, but the confrontation makes Mara willing to help the party pursue the chapel lead without his approval."
+        },
+        {
+          "id": "misdirect-voss",
+          "ability": "Charisma",
+          "skill": "Deception",
+          "dc": 13,
+          "dc_visibility": "private",
+          "success": "If the lie is plausible, Voss accepts it long enough to answer one non-protected question or make one limited public commitment; do not reveal a protected motive or fact.",
+          "fail_forward": "Voss recognizes the lie and becomes more suspicious; the tactic fails, but the party retains the visible chapel lead and may choose a different approach."
+        },
+        {
+          "id": "find-finn-tracks",
+          "ability": "Wisdom",
+          "skill": "Survival",
+          "dc": 10,
+          "dc_visibility": "private",
+          "success": "Find Finn's small boot prints leading toward the ruined chapel without losing time.",
+          "fail_forward": "Find the tracks after the bell tolls again; advance `memory-fade` by one."
+        }
+      ],
+      "exit_conditions": ["party-chooses-chapel", "party-follows-finn-tracks"],
+      "next_scene_ids": ["ruined-chapel"]
+    },
+    {
+      "id": "ruined-chapel",
+      "title": "The Chapel of Borrowed Names",
+      "public_goal": "Find a route below and learn what the bell really does.",
+      "entry_description": "Briar roots stitch the chapel doors shut. Inside, saints have been painted with blank faces and silver tears.",
+      "player_approaches": ["force or finesse the doors", "search the mural", "follow the bell's echo", "use equipment or magic", "retreat to question an NPC", "take another plausible action"],
+      "checks": [
+        {
+          "id": "open-root-door",
+          "ability": "Strength or Dexterity",
+          "skill": "Athletics or thieves' tools",
+          "dc": 11,
+          "dc_visibility": "public",
+          "success": "Open the doors quietly and keep the echo wisps dormant.",
+          "fail_forward": "Open the doors loudly. Each character loses 1 HP to splintering thorns and the echo wisps ask for a cherished memory before allowing passage."
+        },
+        {
+          "id": "inspect-chapel-mural",
+          "ability": "Intelligence or Wisdom",
+          "skill": "Investigation, History, or Religion",
+          "dc": 11,
+          "dc_visibility": "private",
+          "success": "Reveal `bell-restores-as-well-as-erases` and record clue `mural-shows-silver-clapper`.",
+          "fail_forward": "Reveal that the missing clapper matters, but not why; an echo offers the rest in exchange for one honest personal memory."
+        }
+      ],
+      "clues": [
+        {"id": "grain-sack-thread", "find_when": "inspect-vestry", "counts_toward": "collect-two-voss-clues"},
+        {"id": "magistrate-seal-wax", "find_when": "inspect-broken-lock", "counts_toward": "collect-two-voss-clues"}
+      ],
+      "exit_conditions": ["open-stair-to-vault", "follow-the-echo"],
+      "next_scene_ids": ["bell-vault"]
+    },
+    {
+      "id": "bell-vault",
+      "title": "The Choice Beneath the Bell",
+      "public_goal": "Save Finn and decide the bell's fate.",
+      "entry_description": "The bronze bell hangs above a black pool. Finn crouches beside it, clutching a silver clapper wrapped in Voss's green sash.",
+      "available_npc_ids": ["mara-finch", "elian-voss"],
+      "automatic_reveals": ["finn-is-safe"],
+      "final_choices": [
+        {
+          "id": "restore-memories",
+          "description": "Replace the clapper and ring the bell, restoring every stolen memory and exposing Voss.",
+          "cost": "Each hero relives one painful memory aloud, if the player is comfortable doing so; otherwise describe a symbolic image.",
+          "ending": "Briar Glen remembers. Mara becomes a lasting ally and Voss faces the village's judgment."
+        },
+        {
+          "id": "destroy-bell",
+          "description": "Break the bell so it can steal no more memories.",
+          "cost": "The memories already taken remain gone and Voss's crime is harder to prove.",
+          "ending": "The village is safe but changed. Voss pays unless confronted with physical evidence."
+        },
+        {
+          "id": "seal-bell",
+          "description": "Return the clapper but bind the bell in silence, preserving the stored memories for a future decision.",
+          "cost": "Someone must become the bell's voluntary keeper.",
+          "ending": "The immediate danger ends. Mara volunteers if the heroes do not, and Voss remains a live political threat."
+        }
+      ],
+      "agency_rule": "Accept any coherent alternative plan. Determine its cost from established fiction instead of forcing one of the listed endings."
+    }
+  ],
+  "dm_contract": {
+    "style": ["cinematic but concise", "distinct NPC voices", "fair consequences", "frequent callbacks", "player-centered rulings"],
+    "turn_pattern": ["describe the changed situation", "address consequences", "offer one open-ended handoff to the whole table unless rules or fiction focus one character"],
+    "never": ["choose a player action", "invent a physical die result", "reveal private facts without a satisfied gate", "silently change committed state"],
+    "roll_policy": "Only request a roll when success and failure both matter. Never ask for repeated rolls to obtain a preferred result.",
+    "fail_forward_policy": "Failure changes cost, position, time, or information; it never stops the adventure."
+  }
+}

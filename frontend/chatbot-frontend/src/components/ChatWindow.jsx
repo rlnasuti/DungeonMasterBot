@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback, useLayoutEffect } from 'react';
 import Message from './Message';
 
-export default function ChatWindow({ messages, onClear }) {
+export default function ChatWindow({ messages, onClear, emptyMessage = 'Start your quest by sending a message…' }) {
   // Scroll container
   const listRef = useRef(null);
   // Sentinel element that sits at the very end of the list
@@ -165,11 +165,17 @@ export default function ChatWindow({ messages, onClear }) {
         {needsSpacer && <div className="spacer" aria-hidden="true" />}
         {messages.length === 0 ? (
           <div className="parchment msg" aria-live="polite">
-            Start your quest by sending a message…
+            {emptyMessage}
           </div>
         ) : (
           messages.map((m) => (
-            <Message key={m.id} role={m.role} content={m.content} timestamp={m.ts} />
+            <Message
+              key={m.id}
+              role={m.role}
+              content={m.content}
+              timestamp={m.ts}
+              speaker={m.speaker}
+            />
           ))
         )}
         {/* Bottom sentinel for robust "at bottom" detection */}
